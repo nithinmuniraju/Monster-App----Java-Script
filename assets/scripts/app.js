@@ -3,19 +3,78 @@ const PLAYER_NORMAL_ATTACK = 10;
 const PLAYER_STRONG_ATTACK = 16;
 const PLAYER_HEAL_VALUE = 20;
 
+// Logging Values;
+const LOG_EVENT_PLAYER_NORMAL_ATTACK = "PLAYER_NORMAL_ATTACK";
+const LOG_EVENT_PLAYER_STRONG_ATTACK = "PLAYER_NORMAL_STRONG_ATTACK";
+const LOG_EVENT_PLAYER_HEAL = "PLAYER_HEAL";
+const LOG_EVENT_MONSTER_ATTACK = "MONSTER_ATTACK";
+const LOG_GAME_OVER = "GAME_OVER";
+
 let setHealth = prompt('Set initial Health','100'); // Convert this into a model on LOAD
 
-if(!setHealth || setHealth <= 0 ){
+if(!setHealth || setHealth <= 0 || isNaN(setHealth)){
     setHealth = 100;
 }
-const DefaultHealth = setHealth;
+let DefaultHealth = parseInt(setHealth);
 // const DefaultHealth = 100;
 let initialMonsterHealth = DefaultHealth;
 let initialPlayerHealth = DefaultHealth;
 let hasBonus = true;
+
+let logResults = [];
  
 adjustHealthBars(DefaultHealth);
 
+function writeLog(event, value, initialMonsterHealth, initialPlayerHealth){
+    let logEvent;
+    if(event === LOG_EVENT_PLAYER_NORMAL_ATTACK){
+        logEvent = {
+            "event" : event,
+            "value" : value,
+            "target" : "MONSTER",
+            "monsterHealth" : initialMonsterHealth,
+            "playerHealth" : initialPlayerHealth,
+
+        }
+    } else if(event === LOG_EVENT_PLAYER_STRONG_ATTACK){
+        logEvent = {
+            "event" : event,
+            "value" : value,
+            "target" : "MONSTER",
+            "monsterHealth" : initialMonsterHealth,
+            "playerHealth" : initialPlayerHealth,
+
+        }
+    } else if(event === LOG_EVENT_MONSTER_ATTACK){
+        logEvent = {
+            "event" : event,
+            "value" : value,
+            "target" : "PLAYER",
+            "monsterHealth" : initialMonsterHealth,
+            "playerHealth" : initialPlayerHealth,
+
+        }
+    } else if(event === LOG_EVENT_PLAYER_HEAL){
+        logEvent = {
+            "event" : event,
+            "value" : value,
+            "target" : "PLAYER",
+            "monsterHealth" : initialMonsterHealth,
+            "playerHealth" : initialPlayerHealth,
+
+        }
+    } else if(event === LOG_GAME_OVER){
+        logEvent = {
+            "event" : event,
+            "value" : value,
+            "monsterHealth" : initialMonsterHealth,
+            "playerHealth" : initialPlayerHealth,
+
+        }
+    }
+
+    logResults.push(logEvent);
+}
 // Reset function on Game Over
 function reset(){
     initialMonsterHealth = DefaultHealth;
@@ -27,7 +86,7 @@ function endRound(){
     const getBonusHealth = initialPlayerHealth;
     const playerDamage = dealPlayerDamage(MONSTER_ATTACK);
     initialPlayerHealth -= playerDamage
-
+    writeLog(LOG_EVENT_MONSTER_ATTACK,playerDamage, initialMonsterHealth, initialPlayerHealth)
     if(initialPlayerHealth <= 0 && hasBonus){
         hasBonus = false;
         removeBonusLife();
@@ -37,27 +96,32 @@ function endRound(){
     }
 
     if(initialMonsterHealth <= 0 && initialPlayerHealth > 0){
-        alert('PLAYER Won!!');
+        writeLog(LOG_GAME_OVER, 'PLAYER WON!!', initialMonsterHealth, initialPlayerHealth);
+        alert('PLAYER WON!!');
         reset()
     } else if(initialPlayerHealth <= 0 && initialMonsterHealth > 0){
-        alert('PLAYER Lost :(');
+        writeLog(LOG_GAME_OVER, 'MONSTER WON', initialMonsterHealth, initialPlayerHealth);
+        alert('MONSTER WON');
         reset()
     } else if(initialPlayerHealth <= 0 && initialMonsterHealth <= 0){
-        alert('Match Draw');
+        writeLog(LOG_GAME_OVER, 'MATCH DRAW', initialMonsterHealth, initialPlayerHealth);
+        alert('MATCH DRAW');
         reset()
     }
 }
 function attackMode(mode){
-    console.log('mode',mode);
     let attackType;
+    let targetEvent;
     if(mode === "NORMAL"){
         attackType = PLAYER_NORMAL_ATTACK;
+        targetEvent = LOG_EVENT_PLAYER_NORMAL_ATTACK;
     } else if(mode === "STRONG"){
         attackType = PLAYER_STRONG_ATTACK;
+        targetEvent = LOG_EVENT_PLAYER_STRONG_ATTACK;
     }
     const moanstrDamage = dealMonsterDamage(attackType);
     initialMonsterHealth -= moanstrDamage
-
+    writeLog(targetEvent, moanstrDamage, initialMonsterHealth, initialPlayerHealth)
     endRound();
 }
 
@@ -83,15 +147,25 @@ function healHandeler(){
         healValue = PLAYER_HEAL_VALUE
     }
 
+    writeLog(LOG_EVENT_PLAYER_HEAL, healValue, initialMonsterHealth, initialPlayerHealth);
     increasePlayerHealth(PLAYER_HEAL_VALUE);
     initialPlayerHealth += healValue;
 
    endRound();
 }
 
+function writeLogHandeler(){
+    console.log(logResults);
+}
+
 //Add a Click functionality for Attack
 attackBtn.addEventListener('click', attackHandeler);
+
 //Add a Click functionality for Strong Attack
 strongAttackBtn.addEventListener('click', strongAttackHandeler);
+
 //Add a Click functionality for Heal
 healBtn.addEventListener('click', healHandeler);
+
+//Add a Click functionality for Logging Result
+logBtn.addEventListener('click', writeLogHandeler);
