@@ -10,12 +10,27 @@ const LOG_EVENT_PLAYER_HEAL = "PLAYER_HEAL";
 const LOG_EVENT_MONSTER_ATTACK = "MONSTER_ATTACK";
 const LOG_GAME_OVER = "GAME_OVER";
 
-let setHealth = prompt('Set initial Health','100'); // Convert this into a model on LOAD
+let DefaultHealth;
+function getInitialValue(){
+    const enteredValue = prompt('Set initial Health','100'); // Convert this into a model on LOAD
 
-if(!setHealth || setHealth <= 0 || isNaN(setHealth)){
-    setHealth = 100;
+    const parsedValue = parseInt(enteredValue)
+    if(!parsedValue || parsedValue <= 0 || isNaN(parsedValue)){
+        // setHealth = 100;
+        throw {message: "Invalid argument - Please pass only numbers - Default set to Value: 100"}
+    }
+    return parsedValue;
 }
-let DefaultHealth = parseInt(setHealth);
+
+try{
+    DefaultHealth = getInitialValue();
+} catch(error){
+    console.log('erroe', error);
+    DefaultHealth = 100;
+    alert(error.message);
+}
+
+
 // const DefaultHealth = 100;
 let initialMonsterHealth = DefaultHealth;
 let initialPlayerHealth = DefaultHealth;
@@ -155,7 +170,20 @@ function healHandeler(){
 }
 
 function writeLogHandeler(){
-    console.log(logResults);
+    // #1 Display Log in readable format using LOOPS
+    for(let i = 0; i < logResults.length; i++){
+        console.log(logResults[i]);
+    }
+    console.log('**********')
+    // #2 Display Log in readable format using LOOPS
+    let i = 0;
+    for(const element of logResults){
+        console.log(`${i}`);
+        for(const events in element){
+            console.log(`${events} : ${element[events]}`);
+        }
+        i++;
+    }
 }
 
 //Add a Click functionality for Attack
